@@ -38,3 +38,9 @@ df = spark.read.table(table_name)
 # COMMAND ----------
 
 display(df)
+
+# COMMAND ----------
+
+# MAGIC %environment
+# MAGIC "client": "1"
+# MAGIC "base_environment": ""
