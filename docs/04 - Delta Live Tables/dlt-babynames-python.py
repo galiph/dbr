@@ -9,7 +9,7 @@
 
 # COMMAND ----------
 
-catalog_name = "databricks_ws_becccf83_09b9_44be_925a_dfebb4ce558a"
+catalog_name = "ghema"
 
 # COMMAND ----------
 
@@ -69,3 +69,9 @@ def top_baby_names_2021():
       .sort(desc("Total_Count"))
       .limit(10)
   )
+
+# COMMAND ----------
+
+# MAGIC %environment
+# MAGIC "client": "1"
+# MAGIC "base_environment": ""
