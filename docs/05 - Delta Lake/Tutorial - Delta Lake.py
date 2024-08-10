@@ -113,3 +113,98 @@ df = spark.read.table(f"{main}.default.people_10m")
 df_filtered = df.filter(df["id"] >= 9999998)
 display(df_filtered)
 
+
+# COMMAND ----------
+
+df.write.mode("append").saveAsTable(f"{main}.default.people_10m")
+
+# COMMAND ----------
+
+df.write.mode("overwrite").saveAsTable(f"{main}.default.people_10m")
+
+# COMMAND ----------
+
+from delta.tables import *
+from pyspark.sql.functions import *
+
+deltaTable = DeltaTable.forName(spark, f"{main}.default.people_10m")
+
+# Declare the predicate by using a SQL-formatted string.
+deltaTable.update(
+  condition = "gender = 'F'",
+  set = { "gender": "'Female'" }
+)
+
+# Declare the predicate by using Spark SQL functions.
+deltaTable.update(
+  condition = col('gender') == 'M',
+  set = { 'gender': lit('Male') }
+)
+
+
+# COMMAND ----------
+
+from delta.tables import *
+from pyspark.sql.functions import *
+
+deltaTable = DeltaTable.forName(spark, f"{main}.default.people_10m")
+
+# Declare the predicate by using a SQL-formatted string.
+deltaTable.delete("birthDate < '1955-01-01'")
+
+# Declare the predicate by using Spark SQL functions.
+deltaTable.delete(col('birthDate') < '1960-01-01')
+
+
+# COMMAND ----------
+
+from delta.tables import *
+
+deltaTable = DeltaTable.forName(spark, "{main}.default.people_10m")
+display(deltaTable.history())
+
+
+# COMMAND ----------
+
+from delta.tables import *
+
+deltaTable = DeltaTable.forName(spark, f"{main}.default.people_10m")
+deltaHistory = deltaTable.history()
+
+display(deltaHistory.where("version == 0"))
+# Or:
+display(deltaHistory.where("timestamp == '2024-05-15T22:43:15.000+00:00'"))
+
+
+# COMMAND ----------
+
+df = spark.read.option('versionAsOf', 0).table(f"{main}.default.people_10m")
+# Or:
+df = spark.read.option('timestampAsOf', '2024-08-10 21:40:20b').table(f"{main}.default.people_10m")
+
+display(df)
+
+
+# COMMAND ----------
+
+from delta.tables import *
+
+deltaTable = DeltaTable.forName(spark, fb"{main}.default.people_10m")
+deltaTable.optimize()
+
+
+# COMMAND ----------
+
+from delta.tables import *
+
+deltaTable = DeltaTable.forName(spark, f"{main}.default.people_10m")
+deltaTable.optimize().executeZOrderBy("gender")
+
+
+# COMMAND ----------
+
+from delta.tables import *
+
+deltaTable = DeltaTable.forName(spark, f"{main}.default.people_10m")
+deltaTable.vacuum()
+
