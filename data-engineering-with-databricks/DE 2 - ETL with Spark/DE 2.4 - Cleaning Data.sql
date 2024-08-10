@@ -110,7 +110,7 @@ SELECT DISTINCT(*) FROM users_dirty
 -- COMMAND ----------
 
 -- MAGIC %python
--- MAGIC usersDF.distinct().display()
+-- MAGIC usersDF.distinct().count()
 
 -- COMMAND ----------
 
