@@ -97,16 +97,62 @@
 
 -- COMMAND ----------
 
--- CREATE OR REPLACE TEMP VIEW events_pivot
--- <FILL_IN>
--- ("cart", "pillows", "login", "main", "careers", "guest", "faq", "down", "warranty", "finalize", 
--- "register", "shipping_info", "checkout", "mattresses", "add_item", "press", "email_coupon", 
--- "cc_info", "foam", "reviews", "original", "delivery", "premium")
+CREATE OR REPLACE TEMP VIEW events_pivot AS
+SELECT * FROM (
+  SELECT user_id user, event_name 
+  FROM events
+) PIVOT(
+    count(*) for event_name 
+    IN ("cart", "pillows", "login", "main", "careers", "guest", "faq", "down", "warranty", "finalize", 
+  "register", "shipping_info", "checkout", "mattresses", "add_item", "press", "email_coupon", 
+  "cc_info", "foam", "reviews", "original", "delivery", "premium"
+  )
+  ) 
+  ;
+
+SELECT * FROM events_pivot
+
+-- COMMAND ----------
+
+CREATE OR REPLACE TEMP VIEW events_pivot AS
+SELECT * FROM (
+  SELECT user_id user, event_name 
+  FROM events
+) PIVOT(
+    count(*) for event_name 
+    IN ("cart", "pillows", "login", "main", "careers", "guest", "faq", "down", "warranty", "finalize", 
+  "register", "shipping_info", "checkout", "mattresses", "add_item", "press", "email_coupon", 
+  "cc_info", "foam", "reviews", "original", "delivery", "premium"
+  )) 
 
 -- COMMAND ----------
 
 -- MAGIC %python
--- MAGIC # SOURCE_ONLY
+-- MAGIC display(
+-- MAGIC   spark.read.table('events')
+-- MAGIC     .groupBy('user_id')
+-- MAGIC     .pivot('event_name')
+-- MAGIC     .count()
+-- MAGIC     .withColumnRenamed('user_id', 'user')
+-- MAGIC )
+
+-- COMMAND ----------
+
+-- MAGIC %python
+-- MAGIC (spark.read.table('events')
+-- MAGIC     .groupBy('user_id')
+-- MAGIC     .pivot('event_name')
+-- MAGIC     .count()
+-- MAGIC     .withColumnRenamed('user_id', 'user')
+-- MAGIC     .createOrReplaceTempView("events_pivot")
+-- MAGIC )
+-- MAGIC
+-- MAGIC
+
+-- COMMAND ----------
+
+-- MAGIC %python
+-- MAGIC spark.read.table('events')
 -- MAGIC # for testing only; include checks after each language solution
 -- MAGIC check_table_results("events_pivot", 204586, ['user', 'cart', 'pillows', 'login', 'main', 'careers', 'guest', 'faq', 'down', 'warranty', 'finalize', 'register', 'shipping_info', 'checkout', 'mattresses', 'add_item', 'press', 'email_coupon', 'cc_info', 'foam', 'reviews', 'original', 'delivery', 'premium'])
 
