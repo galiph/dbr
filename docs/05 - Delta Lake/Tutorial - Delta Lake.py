@@ -1,6 +1,22 @@
 # Databricks notebook source
-catalog = "databricks_ws_7618a276_40d3_44c3_ab50_37f0bc95541e"
-path = "/Volumes/databricks_ws_7618a276_40d3_44c3_ab50_37f0bc95541e/default/ghema"
+student_no = '702ccf4e_1398_4d08_9528_86267651a25f'
+main = f"databricks_ws_{student_no}"
+volume = f"/Volumes/{main}/default/volume"
+
+file_path = f"file:/Workspace/Users/student-{student_no}@datacamplearn.onmicrosoft.com/dbr/docs/05 - Delta Lake/export.csv"
+
+# COMMAND ----------
+
+file_path
+
+# COMMAND ----------
+
+/Workspace/Users/student-702ccf4e-1398-4d08-9528-86267651a25f@datacamplearn.onmicrosoft.com/dbr/docs/05 - Delta Lake/export.csv
+
+# COMMAND ----------
+
+import pandas as pd 
+pd.read_csv(docs_path + "05 - Delta Lake/export.csv")
 
 # COMMAND ----------
 
@@ -17,10 +33,29 @@ schema = StructType([
   StructField("salary", IntegerType(), True)
 ])
 
+df = spark.read.format("csv").option("header", True).schema(schema).load(docs_path + "05 - Delta Lake/export.csv")
+
+# COMMAND ----------
+
+from pyspark.sql.types import StructType, StructField, IntegerType, StringType, TimestampType
+
+schema = StructType([
+  StructField("id", IntegerType(), True),
+  StructField("firstName", StringType(), True),
+  StructField("middleName", StringType(), True),
+  StructField("lastName", StringType(), True),
+  StructField("gender", StringType(), True),
+  StructField("birthDate", TimestampType(), True),
+  StructField("ssn", StringType(), True),
+  StructField("salary", IntegerType(), True)
+])
+
+# df = spark.read.format("csv").option("header", True).schema(schema).load(f"{path}/export.csv")
 df = spark.read.format("csv").option("header", True).schema(schema).load(f"{path}/export.csv")
 
+
 # Create the table if it does not exist. Otherwise, replace the existing table.
-df.writeTo("databricks_ws_7618a276_40d3_44c3_ab50_37f0bc95541e.default.people_10m").createOrReplace()
+df.writeTo(f"{main}.default.people_10m").createOrReplace()
 
 # If you know the table does not already exist, you can call this instead:
 # df.saveAsTable("main.default.people_10m")
