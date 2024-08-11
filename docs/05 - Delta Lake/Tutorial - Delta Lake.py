@@ -1,39 +1,9 @@
 # Databricks notebook source
 student_no = '702ccf4e_1398_4d08_9528_86267651a25f'
 main = f"databricks_ws_{student_no}"
-volume = f"/Volumes/{main}/default/volume"
+volume = f"/Volumes/{main}/default/my-volume"
 
 file_path = f"file:/Workspace/Users/student-{student_no}@datacamplearn.onmicrosoft.com/dbr/docs/05 - Delta Lake/export.csv"
-
-# COMMAND ----------
-
-file_path
-
-# COMMAND ----------
-
-/Workspace/Users/student-702ccf4e-1398-4d08-9528-86267651a25f@datacamplearn.onmicrosoft.com/dbr/docs/05 - Delta Lake/export.csv
-
-# COMMAND ----------
-
-import pandas as pd 
-pd.read_csv(docs_path + "05 - Delta Lake/export.csv")
-
-# COMMAND ----------
-
-from pyspark.sql.types import StructType, StructField, IntegerType, StringType, TimestampType
-
-schema = StructType([
-  StructField("id", IntegerType(), True),
-  StructField("firstName", StringType(), True),
-  StructField("middleName", StringType(), True),
-  StructField("lastName", StringType(), True),
-  StructField("gender", StringType(), True),
-  StructField("birthDate", TimestampType(), True),
-  StructField("ssn", StringType(), True),
-  StructField("salary", IntegerType(), True)
-])
-
-df = spark.read.format("csv").option("header", True).schema(schema).load(docs_path + "05 - Delta Lake/export.csv")
 
 # COMMAND ----------
 
@@ -51,7 +21,7 @@ schema = StructType([
 ])
 
 # df = spark.read.format("csv").option("header", True).schema(schema).load(f"{path}/export.csv")
-df = spark.read.format("csv").option("header", True).schema(schema).load(f"{path}/export.csv")
+df = spark.read.format("csv").option("header", True).schema(schema).load(f"/Volumes/{main}/default/my-volume/export.csv")
 
 
 # Create the table if it does not exist. Otherwise, replace the existing table.
@@ -63,27 +33,20 @@ df.writeTo(f"{main}.default.people_10m").createOrReplace()
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select * from databricks_ws_7618a276_40d3_44c3_ab50_37f0bc95541e.default.people_10m
-# MAGIC
+spark.sql(f"select * from {main}.default.people_10m").display()
+
 
 # COMMAND ----------
 
-main = 'databricks_ws_7618a276_40d3_44c3_ab50_37f0bc95541e'
+query = f"""
+CREATE TABLE {main}.default.people_10m_prod LIKE {main}.default.people_10m
+"""
+spark.sql(query)
 
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC CREATE TABLE databricks_ws_7618a276_40d3_44c3_ab50_37f0bc95541e.default.people_10m_prod LIKE databricks_ws_7618a276_40d3_44c3_ab50_37f0bc95541e.default.people_10m
 
 # COMMAND ----------
 
 from delta.tables import *
-
-
-
-# COMMAND ----------
-
 DeltaTable.createIfNotExists(spark).tableName(f"{main}.default.people_10m")\
     .addColumn("id", "INT")\
     .addColumn("firstName", "STRING")\
@@ -195,7 +158,7 @@ deltaTable.delete(col('birthDate') < '1960-01-01')
 
 from delta.tables import *
 
-deltaTable = DeltaTable.forName(spark, "{main}.default.people_10m")
+deltaTable = DeltaTable.forName(spark, f"{main}.default.people_10m")
 display(deltaTable.history())
 
 
@@ -215,7 +178,7 @@ display(deltaHistory.where("timestamp == '2024-05-15T22:43:15.000+00:00'"))
 
 df = spark.read.option('versionAsOf', 0).table(f"{main}.default.people_10m")
 # Or:
-df = spark.read.option('timestampAsOf', '2024-08-10 21:40:20b').table(f"{main}.default.people_10m")
+# df = spark.read.option('timestampAsOf', '2024-08-10 21:40:20b').table(f"{main}.default.people_10m")
 
 display(df)
 
@@ -224,7 +187,7 @@ display(df)
 
 from delta.tables import *
 
-deltaTable = DeltaTable.forName(spark, fb"{main}.default.people_10m")
+deltaTable = DeltaTable.forName(spark, f"{main}.default.people_10m")
 deltaTable.optimize()
 
 
