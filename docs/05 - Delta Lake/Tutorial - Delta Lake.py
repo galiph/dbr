@@ -23,39 +23,23 @@ schema = StructType([
 df = spark.read.format("csv").option("header", True).schema(schema).load(f"{file_path}")
 # df = spark.read.format("csv").option("header", True).schema(schema).load(f"/Volumes/{main}/default/my-volume/export.csv")
 
-# COMMAND ----------
-
-main
-
-# COMMAND ----------
-
-display(df)
-
-# COMMAND ----------
-
-df.writeTo(f"{main}.default.people_10m").createOrReplace()
-
-# COMMAND ----------
-
-
-
-
 # Create the table if it does not exist. Otherwise, replace the existing table.
-df.writeTo(f"{main}.default.people_10m").createOrReplace()
-
-# If you know the table does not already exist, you can call this instead:
-# df.saveAsTable("main.default.people_10m")
-
+df.writeTo(f"people_10m").createOrReplace()
 
 # COMMAND ----------
 
-spark.sql(f"select * from {main}.default.people_10m").display()
+# MAGIC %sql 
+# MAGIC SELECT * FROM people_10m
+
+# COMMAND ----------
+
+spark.sql("select * from people_10m").display()
 
 
 # COMMAND ----------
 
 query = f"""
-CREATE TABLE {main}.default.people_10m_prod LIKE {main}.default.people_10m
+CREATE TABLE people_10m_prod LIKE people_10m
 """
 spark.sql(query)
 
@@ -63,7 +47,7 @@ spark.sql(query)
 # COMMAND ----------
 
 from delta.tables import *
-DeltaTable.createIfNotExists(spark).tableName(f"{main}.default.people_10m")\
+DeltaTable.createIfNotExists(spark).tableName(f"people_10m")\
     .addColumn("id", "INT")\
     .addColumn("firstName", "STRING")\
     .addColumn("middleName", "STRING")\
@@ -110,7 +94,7 @@ people_10m_updates.createTempView("people_10m_updates")
 
 from delta.tables import DeltaTable
 
-deltaTable = DeltaTable.forName(spark, f'{main}.default.people_10m')
+deltaTable = DeltaTable.forName(spark, f'people_10m')
 
 (deltaTable.alias("people_10m")
   .merge(
@@ -123,25 +107,25 @@ deltaTable = DeltaTable.forName(spark, f'{main}.default.people_10m')
 
 # COMMAND ----------
 
-df = spark.read.table(f"{main}.default.people_10m")
+df = spark.read.table("people_10m")
 df_filtered = df.filter(df["id"] >= 9999998)
 display(df_filtered)
 
 
 # COMMAND ----------
 
-df.write.mode("append").saveAsTable(f"{main}.default.people_10m")
+df.write.mode("append").saveAsTable("people_10m")
 
 # COMMAND ----------
 
-df.write.mode("overwrite").saveAsTable(f"{main}.default.people_10m")
+df.write.mode("overwrite").saveAsTable("people_10m")
 
 # COMMAND ----------
 
 from delta.tables import *
 from pyspark.sql.functions import *
 
-deltaTable = DeltaTable.forName(spark, f"{main}.default.people_10m")
+deltaTable = DeltaTable.forName(spark, "people_10m")
 
 # Declare the predicate by using a SQL-formatted string.
 deltaTable.update(
@@ -161,7 +145,7 @@ deltaTable.update(
 from delta.tables import *
 from pyspark.sql.functions import *
 
-deltaTable = DeltaTable.forName(spark, f"{main}.default.people_10m")
+deltaTable = DeltaTable.forName(spark, "people_10m")
 
 # Declare the predicate by using a SQL-formatted string.
 deltaTable.delete("birthDate < '1955-01-01'")
@@ -174,7 +158,7 @@ deltaTable.delete(col('birthDate') < '1960-01-01')
 
 from delta.tables import *
 
-deltaTable = DeltaTable.forName(spark, f"{main}.default.people_10m")
+deltaTable = DeltaTable.forName(spark, "people_10m")
 display(deltaTable.history())
 
 
@@ -182,7 +166,7 @@ display(deltaTable.history())
 
 from delta.tables import *
 
-deltaTable = DeltaTable.forName(spark, f"{main}.default.people_10m")
+deltaTable = DeltaTable.forName(spark, f"people_10m")
 deltaHistory = deltaTable.history()
 
 display(deltaHistory.where("version == 0"))
@@ -192,7 +176,7 @@ display(deltaHistory.where("timestamp == '2024-05-15T22:43:15.000+00:00'"))
 
 # COMMAND ----------
 
-df = spark.read.option('versionAsOf', 0).table(f"{main}.default.people_10m")
+df = spark.read.option('versionAsOf', 0).table(f"people_10m")
 # Or:
 # df = spark.read.option('timestampAsOf', '2024-08-10 21:40:20b').table(f"{main}.default.people_10m")
 
@@ -203,7 +187,7 @@ display(df)
 
 from delta.tables import *
 
-deltaTable = DeltaTable.forName(spark, f"{main}.default.people_10m")
+deltaTable = DeltaTable.forName(spark, f"people_10m")
 deltaTable.optimize()
 
 
@@ -211,7 +195,7 @@ deltaTable.optimize()
 
 from delta.tables import *
 
-deltaTable = DeltaTable.forName(spark, f"{main}.default.people_10m")
+deltaTable = DeltaTable.forName(spark, f"people_10m")
 deltaTable.optimize().executeZOrderBy("gender")
 
 
@@ -219,6 +203,6 @@ deltaTable.optimize().executeZOrderBy("gender")
 
 from delta.tables import *
 
-deltaTable = DeltaTable.forName(spark, f"{main}.default.people_10m")
+deltaTable = DeltaTable.forName(spark, f"people_10m")
 deltaTable.vacuum()
 

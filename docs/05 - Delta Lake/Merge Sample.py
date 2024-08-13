@@ -1,5 +1,7 @@
 # Databricks notebook source
 main = "databricks_ws_702ccf4e_1398_4d08_9528_86267651a25f"
+main = "databricks_ws_0305495e-58d5-40af-b3ee-3f45c18bfe17"
+
 
 # COMMAND ----------
 
@@ -17,7 +19,7 @@ target_data = [
 
 target_df = spark.createDataFrame(target_data, ["id", "name", "age"])
 target_df.write.format("delta").mode("overwrite").save("/tmp/target_table")
-target_df.writeTo(f"{main}.default.target_table").createOrReplace()
+target_df.writeTo(f"`{main}`.default.target_table").createOrReplace()
 
 
 # Create a source Delta table
