@@ -1,8 +1,8 @@
 # Databricks notebook source
-student_no = '702ccf4e_1398_4d08_9528_86267651a25f'
+username = dbutils.notebook.entry_point.getDbutils().notebook().getContext().userName().get()
+student_no = username.split("@")[0].replace('student-', '')
 main = f"databricks_ws_{student_no}"
 volume = f"/Volumes/{main}/default/my-volume"
-
 file_path = f"file:/Workspace/Users/student-{student_no}@datacamplearn.onmicrosoft.com/dbr/docs/05 - Delta Lake/export.csv"
 
 # COMMAND ----------
@@ -20,8 +20,24 @@ schema = StructType([
   StructField("salary", IntegerType(), True)
 ])
 
-# df = spark.read.format("csv").option("header", True).schema(schema).load(f"{path}/export.csv")
-df = spark.read.format("csv").option("header", True).schema(schema).load(f"/Volumes/{main}/default/my-volume/export.csv")
+df = spark.read.format("csv").option("header", True).schema(schema).load(f"{file_path}")
+# df = spark.read.format("csv").option("header", True).schema(schema).load(f"/Volumes/{main}/default/my-volume/export.csv")
+
+# COMMAND ----------
+
+main
+
+# COMMAND ----------
+
+display(df)
+
+# COMMAND ----------
+
+df.writeTo(f"{main}.default.people_10m").createOrReplace()
+
+# COMMAND ----------
+
+
 
 
 # Create the table if it does not exist. Otherwise, replace the existing table.
