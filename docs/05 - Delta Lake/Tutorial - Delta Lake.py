@@ -206,3 +206,53 @@ from delta.tables import *
 deltaTable = DeltaTable.forName(spark, f"people_10m")
 deltaTable.vacuum()
 
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Upsert into a Delta Lake table using merge
+
+# COMMAND ----------
+
+from delta.tables import *
+
+deltaTablePeople = DeltaTable.forName(spark, "people10m")
+deltaTablePeopleUpdates = DeltaTable.forName(spark, "people10mupdates")
+
+dfUpdates = deltaTablePeopleUpdates.toDF()
+
+deltaTablePeople.alias('people') \
+  .merge(
+    dfUpdates.alias('updates'),
+    'people.id = updates.id'
+  ) \
+  .whenMatchedUpdate(set =
+    {
+      "id": "updates.id",
+      "firstName": "updates.firstName",
+      "middleName": "updates.middleName",
+      "lastName": "updates.lastName",
+      "gender": "updates.gender",
+      "birthDate": "updates.birthDate",
+      "ssn": "updates.ssn",
+      "salary": "updates.salary"
+    }
+  ) \
+  .whenNotMatchedInsert(values =
+    {
+      "id": "updates.id",
+      "firstName": "updates.firstName",
+      "middleName": "updates.middleName",
+      "lastName": "updates.lastName",
+      "gender": "updates.gender",
+      "birthDate": "updates.birthDate",
+      "ssn": "updates.ssn",
+      "salary": "updates.salary"
+    }
+  ) \
+  .execute()
+
+
+# COMMAND ----------
+
+

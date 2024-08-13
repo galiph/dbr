@@ -60,6 +60,18 @@ DESCRIBE EXTENDED sales;
 
 -- COMMAND ----------
 
+-- MAGIC %python
+-- MAGIC dataset_path = f"{DA.paths.datasets}/ecommerce/raw/sales-historical"
+-- MAGIC
+-- MAGIC df = spark.read.parquet(dataset_path)
+-- MAGIC df.write.mode("overwrite").saveAsTable("sales")
+-- MAGIC
+-- MAGIC description = spark.sql("DESCRIBE EXTENDED sales")
+-- MAGIC description.display()
+-- MAGIC
+
+-- COMMAND ----------
+
 -- MAGIC %md
 -- MAGIC
 -- MAGIC  
@@ -77,6 +89,23 @@ CREATE OR REPLACE TABLE sales_unparsed AS
 SELECT * FROM csv.`${da.paths.datasets}/ecommerce/raw/sales-csv`;
 
 SELECT * FROM sales_unparsed;
+
+-- COMMAND ----------
+
+-- MAGIC %python
+-- MAGIC from delta.tables import *
+
+-- COMMAND ----------
+
+-- MAGIC %python
+-- MAGIC
+-- MAGIC dataset_path = f"{DA.paths.datasets}/ecommerce/raw/sales-csv"
+-- MAGIC
+-- MAGIC df = spark.read.csv(dataset_path)
+-- MAGIC df.write.mode("overwrite").saveAsTable("sales_unparsed")
+-- MAGIC
+-- MAGIC sales_unparsed = DeltaTable.forName(spark, "sales_unparsed").toDF()
+-- MAGIC sales_unparsed.display()
 
 -- COMMAND ----------
 
@@ -102,6 +131,22 @@ CREATE TABLE sales_delta AS
   SELECT * FROM sales_tmp_vw;
   
 SELECT * FROM sales_delta
+
+-- COMMAND ----------
+
+-- MAGIC %python
+-- MAGIC
+-- MAGIC dataset_path = f"{DA.paths.datasets}/ecommerce/raw/sales-csv"
+-- MAGIC
+-- MAGIC df = spark.read\
+-- MAGIC     .option("header", "true")\
+-- MAGIC     .option("delimiter", "|")\
+-- MAGIC     .schema("order_id LONG, email STRING, transactions_timestamp LONG, total_item_quantity INTEGER, purchase_revenue_in_usd DOUBLE, unique_items INTEGER, items STRING")\
+-- MAGIC     .csv(dataset_path)
+-- MAGIC df.write.mode("overwrite").option("overwriteSchema", "true").saveAsTable("sales_unparsed")
+-- MAGIC
+-- MAGIC sales_unparsed = DeltaTable.forName(spark, "sales_unparsed").toDF()
+-- MAGIC sales_unparsed.display()
 
 -- COMMAND ----------
 
