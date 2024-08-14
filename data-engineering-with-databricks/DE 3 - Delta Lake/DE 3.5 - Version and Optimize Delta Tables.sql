@@ -40,6 +40,11 @@
 
 -- COMMAND ----------
 
+-- MAGIC %python
+-- MAGIC print('-')
+
+-- COMMAND ----------
+
 -- MAGIC %run ./Includes/Classroom-Setup-03.5
 
 -- COMMAND ----------
