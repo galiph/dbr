@@ -193,6 +193,36 @@ WHEN NOT MATCHED THEN INSERT *
 
 -- COMMAND ----------
 
+-- MAGIC %python
+-- MAGIC from delta.tables import DeltaTable
+-- MAGIC from pyspark.sql import functions as F
+-- MAGIC from pyspark.sql import Window
+-- MAGIC
+-- MAGIC users_update_df = spark.table("users_update")
+-- MAGIC users_update_df = (
+-- MAGIC     spark.table("users_update")
+-- MAGIC     .withColumn("rank", F.row_number().over(
+-- MAGIC         Window.partitionBy("user_id").orderBy(F.desc("updated"))
+-- MAGIC     ))
+-- MAGIC     .filter("rank = 1")
+-- MAGIC     .drop("rank")
+-- MAGIC )
+-- MAGIC
+-- MAGIC users_delta_table = DeltaTable.forName(spark, "users")
+-- MAGIC
+-- MAGIC users_delta_table.alias("a").merge(
+-- MAGIC     users_update_df.alias("b"),
+-- MAGIC     "a.user_id = b.user_id"
+-- MAGIC ).whenMatchedUpdate(
+-- MAGIC     condition="a.email IS NULL AND b.email IS NOT NULL",
+-- MAGIC     set={
+-- MAGIC         "email": "b.email",
+-- MAGIC         "updated": "b.updated"
+-- MAGIC     }
+-- MAGIC ).whenNotMatchedInsertAll().execute()
+
+-- COMMAND ----------
+
 -- MAGIC %md
 -- MAGIC
 -- MAGIC
