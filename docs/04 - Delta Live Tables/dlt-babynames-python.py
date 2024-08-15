@@ -69,9 +69,3 @@ def top_baby_names_2021():
       .sort(desc("Total_Count"))
       .limit(10)
   )
-
-# COMMAND ----------
-
-# MAGIC %environment
-# MAGIC "client": "1"
-# MAGIC "base_environment": ""
