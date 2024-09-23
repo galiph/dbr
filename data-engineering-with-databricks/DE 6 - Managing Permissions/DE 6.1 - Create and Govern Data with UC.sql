@@ -85,7 +85,7 @@ CREATE CATALOG IF NOT EXISTS ${DA.my_new_catalog}
 
 -- COMMAND ----------
 
-USE CATALOG ${DA.my_new_catalog}
+USE CATALOG databricks_ws_f938dad0_9316_4f8a_bdcf_91c96be7d0a2
 
 -- COMMAND ----------
 
@@ -161,7 +161,7 @@ SELECT * FROM agg_heartrate
 
 -- COMMAND ----------
 
-GRANT USAGE ON CATALOG ${DA.my_new_catalog} TO `account users`;
+GRANT USAGE ON CATALOG databricks_ws_f938dad0_9316_4f8a_bdcf_91c96be7d0a2 TO `account users`;
 
 -- COMMAND ----------
 
