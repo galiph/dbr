@@ -37,6 +37,10 @@
 
 # COMMAND ----------
 
+DA.paths.events
+
+# COMMAND ----------
+
 df = (spark
       .readStream
       .format("delta")
