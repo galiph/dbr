@@ -56,6 +56,18 @@ import pyspark.sql.functions as F
 
 workouts_schema = "user_id INT, workout_id INT, timestamp FLOAT, action STRING, session_id INT"
 
+@dlt.table(
+    table_properties={"quality": "bronze"}
+)
+
+def workouts_bronze():
+    return (
+        dlt.read_stream("bronze")
+          .filter("topic = 'workout'")
+          .select(F.from_json(F.col("value").cast("string"), workouts_schema).alias("v"))
+          .select("v.*")
+    )
+
 # COMMAND ----------
 
 # MAGIC %md
@@ -76,6 +88,28 @@ workouts_schema = "user_id INT, workout_id INT, timestamp FLOAT, action STRING, 
 # MAGIC 1. Check that **`user_id`** and **`workout_id`** fields are not null
 # MAGIC 1. Cast **`timestamp`** to timestamp field named **`time`**
 # MAGIC 1. Deduplicate on **`user_id`** and **`time`**
+
+# COMMAND ----------
+
+rules = {
+  "valid_user_id": "user_id IS NOT NULL",
+  "valid_workout_id": "workout_id IS NOT NULL"
+}
+
+@dlt.table(
+    table_properties={"quality": "silver"}
+)
+@dlt.expect_all_or_drop(rules)
+def workouts_silver():
+    return (
+        dlt.read_stream("workouts_bronze")
+          .select(
+            "*", 
+            F.to_timestamp(F.col("timestamp")).alias("time")
+          )
+          .withWatermark("time", "30 seconds")
+          .dropDuplicates(["user_id", "time"])
+    )
 
 # COMMAND ----------
 
