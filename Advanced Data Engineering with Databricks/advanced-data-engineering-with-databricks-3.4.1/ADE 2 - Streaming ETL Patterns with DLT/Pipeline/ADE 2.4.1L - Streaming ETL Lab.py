@@ -121,6 +121,18 @@ def workouts_silver():
 
 # COMMAND ----------
 
+quarantine_rules = {}
+quarantine_rules["invalid_record"] = f"NOT({' AND '.join(rules.values())})"
+
+@dlt.table
+@dlt.expect_all_or_drop(quarantine_rules)
+def workouts_quarantine():
+    return (
+        dlt.read_stream("workouts_bronze")
+        )
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC
 # MAGIC &copy; 2024 Databricks, Inc. All rights reserved.<br/>
